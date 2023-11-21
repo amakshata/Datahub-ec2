@@ -24,7 +24,7 @@ jobs:
           chmod 600 ~/.ssh/key.pem
 
       - name: Deploy to Server
-        uses: easingthemes/ssh-deploy@main
+        uses: appleboy/ssh-action@master
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           REMOTE_USER: ubuntu
