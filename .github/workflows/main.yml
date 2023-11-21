@@ -22,8 +22,11 @@ jobs:
         datahub-key.pem: ${{secrets.SSH_PRIVATE_KEY}}
         aws-region: us-east-1
       
+    - name: Create SSH key file
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
     - name: Deploy to EC2
       run: |
-          # Add known hosts (replace your-ec2-ip-address)
-          ssh -i/path/to/datahub-key.pem ubuntu@18.212.105.179 
-          ENDSSH
+        ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@18.212.105.179
