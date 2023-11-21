@@ -27,4 +27,5 @@ jobs:
       env:
         SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
         REMOTE_USER: ubuntu
+        REMOTE_HOST: 18.212.105.179
      
