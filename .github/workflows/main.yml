@@ -29,7 +29,23 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           REMOTE_USER: ubuntu
           REMOTE_HOST: 18.212.105.179
-          
+
+      - name: Deploy to Server
+        uses: easingthemes/ssh-deploy@main
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          REMOTE_USER: ubuntu
+          REMOTE_HOST: 18.212.105.179
+        with:
+          script: |
+            sudo systemctl start docker
+            python3 -m pip install --upgrade pip wheel setuptools
+            python3 -m pip install --upgrade acryl-datahub
+            datahub version
+            datahub docker quickstart
+            docker images
+            docker ps
+ 
       - name: Change to root user
         run: sudo -i
         
