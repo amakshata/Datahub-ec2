@@ -25,5 +25,5 @@ jobs:
     - name: Deploy to EC2
       run: |
           # Add known hosts (replace your-ec2-ip-address)
-          ssh -i "datahub-key.pem" ubuntu@18.212.105.179 
+          ssh -i/path/to/datahub-key.pem ubuntu@18.212.105.179 
           ENDSSH
