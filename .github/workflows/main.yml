@@ -29,7 +29,10 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           REMOTE_USER: ubuntu
           REMOTE_HOST: 18.212.105.179
-          
+
+      - name: Check EC2 connection
+        run: ssh -i ~/.ssh/key.pem ubuntu@18.212.105.179 "echo 'Connected to EC2 instance'"
+        
       - name: Change to root user
         run: sudo -i
 
