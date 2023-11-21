@@ -23,9 +23,10 @@ jobs:
       
     - name: Deploy to EC2
       run: |
-          ssh -i /path/to/your/private-key.pem ec2-user@your-ec2-ip-address 'bash -s' << 'ENDSSH'
-            # Commands to be executed on your EC2 instance
-            cd /path/to/your/application
-            git pull origin main
-            # Add any other deployment steps
+          # Set up the private key
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+          # Add known hosts (replace your-ec2-ip-address)
+          ssh-keyscan 18.212.105.179 >> ~/.ssh/known_hosts
           ENDSSH
