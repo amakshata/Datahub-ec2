@@ -1,68 +1,41 @@
+name: Deploy DataHub on EC2
+
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
+      - name: Set up SSH key
+        uses: actions/setup-ssh@v3
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          github-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Prepare SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/key.pem
-          chmod 600 ~/.ssh/key.pem
+      - name: Connect to EC2 instance
+        uses: appleboy/ssh-action@v3
+        with:
+          host: ${{ secrets.EC2_HOSTNAME }}
+          user: ${{ secrets.EC2_USERNAME }}
+          private_key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Deploy to Server
-        uses: easingthemes/ssh-deploy@main
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          REMOTE_USER: ubuntu
-          REMOTE_HOST: 18.212.105.179
-          
-      - name: Change to root user
-        run: sudo -i
-        
-      - name: Check for Docker and Docker Compose
-        run: |
-          if ! command -v docker &> /dev/null; then
-              echo "Docker not found. Installing Docker..."
-              sudo apt-get update
-              sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
-              curl -fsSL https://get.docker.com -o get-docker.sh
-              sudo sh get-docker.sh
-              sudo usermod -aG docker $USER
-          else
-              echo "Docker is already installed."
-          fi
-          
-          if ! command -v docker-compose &> /dev/null; then
-              echo "Docker Compose not found. Installing Docker Compose..."
-              sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-              sudo chmod +x /usr/local/bin/docker-compose
-          else
-              echo "Docker Compose is already installed."
-          fi
+      - name: Create a file
+        run: mkdir mahesh
 
-      - name: Start Docker service
-        run: sudo systemctl start docker
+      - name: Upgrade PIP
+        run: python3 -m pip install --upgrade pip wheel setuptools
 
-      - name: install pip and python dependency
-        run: |
-          python3 -m pip install --upgrade pip wheel setuptools
-          python3 -m pip install --upgrade acryl-datahub
-          datahub version
+      - name: Install Acryl DataHub
+        run: python3 -m pip install --upgrade acryl-datahub
 
-      - name: Deploy datahub
+      - name: Check DataHub version
+        run: datahub version
+
+      - name: Start DataHub container
         run: datahub docker quickstart
 
