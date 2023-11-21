@@ -17,29 +17,52 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Executing remote ssh commands using ssh key
-        uses: appleboy/ssh-action@master
-        with:
-          host: 18.212.105.179
-          username: ubuntu
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            python3 -m pip install --upgrade pip wheel setuptools
-            python3 -m pip install --upgrade acryl-datahub
-            datahub version
-            datahub docker quickstart
+      - name: Prepare SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/key.pem
+          chmod 600 ~/.ssh/key.pem
 
+      - name: Deploy to Server
+        uses: easingthemes/ssh-deploy@main
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          REMOTE_USER: ubuntu
+          REMOTE_HOST: 18.212.105.179
+          
+      - name: Change to root user
+        run: sudo -i
+        
+      - name: Check for Docker and Docker Compose
+        run: |
+          if ! command -v docker &> /dev/null; then
+              echo "Docker not found. Installing Docker..."
+              sudo apt-get update
+              sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+              curl -fsSL https://get.docker.com -o get-docker.sh
+              sudo sh get-docker.sh
+              sudo usermod -aG docker $USER
+          else
+              echo "Docker is already installed."
+          fi
+          
+          if ! command -v docker-compose &> /dev/null; then
+              echo "Docker Compose not found. Installing Docker Compose..."
+              sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+              sudo chmod +x /usr/local/bin/docker-compose
+          else
+              echo "Docker Compose is already installed."
+          fi
 
+      - name: Start Docker service
+        run: sudo systemctl start docker
 
+      - name: install pip and python dependency
+        run: |
+          python3 -m pip install --upgrade pip wheel setuptools
+          python3 -m pip install --upgrade acryl-datahub
+          datahub version
 
-
-
-
-
-
-
-
-
-     
-
+      - name: Deploy datahub
+        run: datahub docker quickstart
 
