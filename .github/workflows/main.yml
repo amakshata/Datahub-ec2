@@ -13,7 +13,7 @@ jobs:
       - name: install pip and python dependency
         run: |
            sudo apt update
-           sudo apt install python3
+           sudo apt install python3.8
 
       - name: install pip and python dependency
         run: |
